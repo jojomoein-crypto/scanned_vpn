@@ -1,0 +1,31 @@
+name: Filter NamazVPN Configs
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  filter:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Download source file
+        run: |
+          curl -L -o source.txt "https://raw.githubusercontent.com/barry-far/V2ray-config/main/Splitted-By-Protocol/vless.txt"
+      
+      - name: Filter lines containing NamazVPN
+        run: |
+          grep "NamazVPN" source.txt > filtered.txt || true
+      
+      - name: Commit and push to new.txt
+        run: |
+          cp filtered.txt new.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add new.txt
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update filtered configs $(date -u +'%Y-%m-%d %H:%M:%S')"
+          git push
